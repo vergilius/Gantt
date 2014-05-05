@@ -8,28 +8,83 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
+        # Adding model 'Team'
+        db.create_table(u'gantt_team', (
+            ('name', self.gf('django.db.models.fields.CharField')(max_length=255, primary_key=True)),
+        ))
+        db.send_create_signal(u'gantt', ['Team'])
 
-        # Changing field 'Task.parent_task'
-        db.alter_column(u'domain_task', 'parent_task_id', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['domain.Task'], null=True))
+        # Adding model 'Assignment'
+        db.create_table(u'gantt_assignment', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
+            ('team', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['gantt.Team'])),
+            ('role', self.gf('django.db.models.fields.CharField')(max_length=255)),
+        ))
+        db.send_create_signal(u'gantt', ['Assignment'])
 
-        # Changing field 'Task.developer'
-        db.alter_column(u'domain_task', 'developer_id', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'], null=True))
+        # Adding unique constraint on 'Assignment', fields ['user', 'team']
+        db.create_unique(u'gantt_assignment', ['user_id', 'team_id'])
+
+        # Adding model 'Project'
+        db.create_table(u'gantt_project', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('team', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['gantt.Team'])),
+            ('name', self.gf('django.db.models.fields.CharField')(max_length=255)),
+        ))
+        db.send_create_signal(u'gantt', ['Project'])
+
+        # Adding model 'ProjectAssignment'
+        db.create_table(u'gantt_projectassignment', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
+            ('project', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['gantt.Project'])),
+            ('role', self.gf('django.db.models.fields.CharField')(max_length=255)),
+        ))
+        db.send_create_signal(u'gantt', ['ProjectAssignment'])
+
+        # Adding unique constraint on 'ProjectAssignment', fields ['user', 'project']
+        db.create_unique(u'gantt_projectassignment', ['user_id', 'project_id'])
+
+        # Adding model 'Task'
+        db.create_table(u'gantt_task', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('project', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['gantt.Project'])),
+            ('developer', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'], null=True, blank=True)),
+            ('parent_task', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['gantt.Task'], null=True, blank=True)),
+            ('name', self.gf('django.db.models.fields.CharField')(max_length=255)),
+            ('description', self.gf('django.db.models.fields.CharField')(max_length=255)),
+            ('priority', self.gf('django.db.models.fields.IntegerField')()),
+            ('start_date', self.gf('django.db.models.fields.DateTimeField')()),
+            ('due_date', self.gf('django.db.models.fields.DateTimeField')()),
+            ('status', self.gf('django.db.models.fields.CharField')(max_length=255)),
+            ('realization', self.gf('django.db.models.fields.IntegerField')()),
+        ))
+        db.send_create_signal(u'gantt', ['Task'])
+
 
     def backwards(self, orm):
+        # Removing unique constraint on 'ProjectAssignment', fields ['user', 'project']
+        db.delete_unique(u'gantt_projectassignment', ['user_id', 'project_id'])
 
-        # User chose to not deal with backwards NULL issues for 'Task.parent_task'
-        raise RuntimeError("Cannot reverse this migration. 'Task.parent_task' and its values cannot be restored.")
-        
-        # The following code is provided here to aid in writing a correct migration
-        # Changing field 'Task.parent_task'
-        db.alter_column(u'domain_task', 'parent_task_id', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['domain.Task']))
+        # Removing unique constraint on 'Assignment', fields ['user', 'team']
+        db.delete_unique(u'gantt_assignment', ['user_id', 'team_id'])
 
-        # User chose to not deal with backwards NULL issues for 'Task.developer'
-        raise RuntimeError("Cannot reverse this migration. 'Task.developer' and its values cannot be restored.")
-        
-        # The following code is provided here to aid in writing a correct migration
-        # Changing field 'Task.developer'
-        db.alter_column(u'domain_task', 'developer_id', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User']))
+        # Deleting model 'Team'
+        db.delete_table(u'gantt_team')
+
+        # Deleting model 'Assignment'
+        db.delete_table(u'gantt_assignment')
+
+        # Deleting model 'Project'
+        db.delete_table(u'gantt_project')
+
+        # Deleting model 'ProjectAssignment'
+        db.delete_table(u'gantt_projectassignment')
+
+        # Deleting model 'Task'
+        db.delete_table(u'gantt_task')
+
 
     models = {
         u'auth.group': {
@@ -68,46 +123,46 @@ class Migration(SchemaMigration):
             'model': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
         },
-        u'domain.assignment': {
+        u'gantt.assignment': {
             'Meta': {'unique_together': "(('user', 'team'),)", 'object_name': 'Assignment'},
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'role': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
-            'team': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['domain.Team']"}),
+            'team': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['gantt.Team']"}),
             'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"})
         },
-        u'domain.project': {
+        u'gantt.project': {
             'Meta': {'object_name': 'Project'},
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
-            'team': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['domain.Team']"}),
-            'users': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['auth.User']", 'through': u"orm['domain.ProjectAssignment']", 'symmetrical': 'False'})
+            'team': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['gantt.Team']"}),
+            'users': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['auth.User']", 'through': u"orm['gantt.ProjectAssignment']", 'symmetrical': 'False'})
         },
-        u'domain.projectassignment': {
+        u'gantt.projectassignment': {
             'Meta': {'unique_together': "(('user', 'project'),)", 'object_name': 'ProjectAssignment'},
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'project': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['domain.Project']"}),
+            'project': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['gantt.Project']"}),
             'role': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
             'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"})
         },
-        u'domain.task': {
+        u'gantt.task': {
             'Meta': {'object_name': 'Task'},
             'description': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
             'developer': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']", 'null': 'True', 'blank': 'True'}),
             'due_date': ('django.db.models.fields.DateTimeField', [], {}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
-            'parent_task': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['domain.Task']", 'null': 'True', 'blank': 'True'}),
+            'parent_task': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['gantt.Task']", 'null': 'True', 'blank': 'True'}),
             'priority': ('django.db.models.fields.IntegerField', [], {}),
-            'project': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['domain.Project']"}),
+            'project': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['gantt.Project']"}),
             'realization': ('django.db.models.fields.IntegerField', [], {}),
             'start_date': ('django.db.models.fields.DateTimeField', [], {}),
             'status': ('django.db.models.fields.CharField', [], {'max_length': '255'})
         },
-        u'domain.team': {
+        u'gantt.team': {
             'Meta': {'object_name': 'Team'},
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255', 'primary_key': 'True'}),
-            'users': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['auth.User']", 'through': u"orm['domain.Assignment']", 'symmetrical': 'False'})
+            'users': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['auth.User']", 'through': u"orm['gantt.Assignment']", 'symmetrical': 'False'})
         }
     }
 
-    complete_apps = ['domain']
+    complete_apps = ['gantt']

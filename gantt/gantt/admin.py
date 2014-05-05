@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from domain.models import (
+from gantt.models import (
     Team,
     Assignment,
     Project,

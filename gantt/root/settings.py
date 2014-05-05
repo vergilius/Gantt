@@ -37,7 +37,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'south',
-    'domain',
+    'gantt',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -49,9 +49,9 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-ROOT_URLCONF = 'gantt.urls'
+ROOT_URLCONF = 'root.urls'
 
-WSGI_APPLICATION = 'gantt.wsgi.application'
+WSGI_APPLICATION = 'root.wsgi.application'
 
 
 # Database

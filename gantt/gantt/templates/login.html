@@ -3,5 +3,10 @@
 {% block title %}Login page{% endblock %}
 
 {% block body %}
-    Login page.
+    <h1>Login</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form }}
+        <button type="submit">Login</button>
+    </form>
 {% endblock %}

@@ -3,5 +3,10 @@
 {% block title %}Home page{% endblock %}
 
 {% block body %}
-    Home page.
+    <h1>Your teams</h1>
+    <ul>
+        {% for team in user.team_set.all %}
+            <li>{{ team }}</li>
+        {% endfor %}
+    </ul>
 {% endblock %}

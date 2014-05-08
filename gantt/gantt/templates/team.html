@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block title %}Your projects{% endblock %}
+
+{% block body %}
+    <h1>Projects for team "{{ team.name }}"</h1>
+    <ul>
+        {% for project in projects %}
+            <li>{{ project.name }}</li>
+        {% endfor %}
+    </ul>
+{% endblock %}

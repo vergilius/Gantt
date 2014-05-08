@@ -12,7 +12,8 @@ urlpatterns = patterns(
     # url(r'^blog/', include('blog.urls')),
 
     url(r'^$', gantt.views.home),
+    url(r'^admin/', include(admin.site.urls)),
     url(r'^login/$', gantt.views.login_view),
     url(r'^logout/$', gantt.views.logout_view),
-    url(r'^admin/', include(admin.site.urls)),
+    url(r'^team/(?P<team>\w+)/', gantt.views.team),
 )

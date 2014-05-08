@@ -10,6 +10,11 @@ class Team(models.Model):
     def __unicode__(self):
         return self.name
 
+    def get_projects_for(self, user):
+        return [
+            project for project in self.project_set.all() if user in project.users.all()
+        ]
+
 
 class Assignment(models.Model):
 

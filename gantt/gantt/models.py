@@ -45,6 +45,16 @@ class Project(models.Model):
     def __unicode__(self):
         return self.name
 
+    def top_down_tasks(self):
+        for task in self.task_set.filter(
+                parent_task__isnull=True).order_by('start_date', 'pk'):
+            yield task
+
+            for tt in task.get_subtasks():
+                yield tt
+
+
+
 
 class ProjectAssignment(models.Model):
 
@@ -68,9 +78,46 @@ class Task(models.Model):
     developer = models.ForeignKey(User, blank=True, null=True)
     parent_task = models.ForeignKey('self', blank=True, null=True)
     name = models.CharField(max_length=255, blank=False)
-    description = models.CharField(max_length=255)
-    priority = models.IntegerField()
-    start_date = models.DateTimeField()
-    due_date = models.DateTimeField()
-    status = models.CharField(max_length=255)
-    realization = models.IntegerField()
+    description = models.CharField(max_length=255, blank=True)
+    priority = models.IntegerField(default=0)
+    _start_date = models.DateTimeField(name='start_date')
+    _due_date = models.DateTimeField(name='due_date')
+    status = models.CharField(max_length=255, blank=True)
+    realization = models.IntegerField(default=0)
+
+    @property
+    def start_date(self):
+        return self._start_date
+
+    @start_date.setter
+    def start_date(self, value):
+        self._start_date = value
+
+    @start_date.deleter
+    def start_date(self):
+        self._start_date = None
+
+    @property
+    def due_date(self):
+        return self._due_date
+
+    @due_date.setter
+    def due_date(self, value):
+        self._due_date = value
+
+    @due_date.deleter
+    def due_date(self):
+        self._due_date = None
+
+    def has_subtasks(self):
+        return bool(self.task_set.count())
+
+    def __unicode__(self):
+        return '<Task #{} - {}>'.format(self.pk, self.name)
+
+    def get_subtasks(self):
+        for sub in self.task_set.order_by('start_date', 'pk'):
+            yield sub
+
+            for tt in sub.get_subtasks():
+                yield tt

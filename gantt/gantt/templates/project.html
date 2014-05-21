@@ -12,10 +12,13 @@
 </div>
 <div>
     <div class="col-md-2">
+        <ul>
+            {% for task in project.top_down_tasks %}
+                <li>{{ task.name }}</li>
+            {% endfor %}
+        </ul>
     </div>
     <div class="col-md-10">
     </div>
 </div>
-
-
 {% endblock %}

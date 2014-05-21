@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import logout, forms, authenticate, login
 from django.http import Http404
 
@@ -49,12 +49,30 @@ def team(request, team):
     try:
         team = models.Team.objects.get(name=team)
     except models.Team.DoesNotExist:
-        raise Http404('Team not found!')
+        raise Http404()
 
     if not team in request.user.team_set.all():
-        raise Http404('Team not found!')
+        raise Http404()
 
     return render(request, 'team.html', {
         'team': team,
         'projects': team.get_projects_for(request.user),
+    })
+
+
+@login_required
+def project(request, project):
+    try:
+        project = models.Project.objects.get(pk=project)
+    except models.Project.DoesNotExist:
+        raise Http404()
+
+    if not project.team in request.user.team_set.all():
+        raise Http404()
+
+    if not project in request.user.project_set.all():
+        raise Http404()
+
+    return render(request, 'project.html', {
+        'project': project,
     })

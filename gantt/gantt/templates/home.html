@@ -6,7 +6,7 @@
     <h1>Your teams</h1>
     <ul>
         {% for team in user.team_set.all %}
-            <li><a href="/team/{{ team }}/">{{ team }}</a></li>
+            <li><a href="{% url "team" team=team.pk %}">{{ team }}</a></li>
         {% endfor %}
     </ul>
 {% endblock %}

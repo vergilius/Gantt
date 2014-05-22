@@ -7,11 +7,7 @@
 {% block body %}
 <div class="container">
     <div class="col-md-2">
-        <h2>Tasks</h2>
-    </div>
-</div>
-<div>
-    <div class="col-md-2">
+        Tasks
         <ul>
             {% for task in project.top_down_tasks %}
                 <li>{{ task.name }}</li>
@@ -19,6 +15,9 @@
         </ul>
     </div>
     <div class="col-md-10">
+        <div class="mono">
+            {% for day in project_span %}|{% for it in day_span %}&nbsp;{% endfor %}{% endfor %}|
+        </div>
     </div>
 </div>
 {% endblock %}

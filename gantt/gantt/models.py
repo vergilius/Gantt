@@ -12,7 +12,9 @@ class Team(models.Model):
 
     def get_projects_for(self, user):
         return [
-            project for project in self.project_set.all() if user in project.users.all()
+            project for project
+            in self.project_set.all()
+            if user in project.users.all()
         ]
 
 
@@ -53,7 +55,13 @@ class Project(models.Model):
             for tt in task.get_subtasks():
                 yield tt
 
+    def top_tasks(self):
+        return self.task_set.filter(parent_task__isnull=True)
 
+    def get_span(self):
+        start_date = min(task.start_date for task in self.top_tasks())
+        due_date = max(task.due_date for task in self.top_tasks())
+        return start_date, due_date
 
 
 class ProjectAssignment(models.Model):
@@ -80,13 +88,15 @@ class Task(models.Model):
     name = models.CharField(max_length=255, blank=False)
     description = models.CharField(max_length=255, blank=True)
     priority = models.IntegerField(default=0)
-    _start_date = models.DateTimeField(name='start_date')
-    _due_date = models.DateTimeField(name='due_date')
+    _start_date = models.DateField(name='start_date')
+    _due_date = models.DateField(name='due_date')
     status = models.CharField(max_length=255, blank=True)
     realization = models.IntegerField(default=0)
 
     @property
     def start_date(self):
+        if self.task_set.count() > 0:
+            return min(task.start_date for task in self.task_set.all())
         return self._start_date
 
     @start_date.setter
@@ -99,6 +109,8 @@ class Task(models.Model):
 
     @property
     def due_date(self):
+        if self.task_set.count() > 0:
+            return max(task.due_date for task in self.task_set.all())
         return self._due_date
 
     @due_date.setter
@@ -121,3 +133,9 @@ class Task(models.Model):
 
             for tt in sub.get_subtasks():
                 yield tt
+
+    def save(self, *args, **kwargs):
+        if self.start_date > self.due_date:
+            raise RuntimeError(
+                'Start date must be earlier or the same as due date.')
+        super(Task, self).save(*args, **kwargs)

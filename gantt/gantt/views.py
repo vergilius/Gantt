@@ -4,6 +4,8 @@ from django.http import Http404
 
 from . import models
 
+DAY_SPAN = 4
+
 
 def login_required(func):
 
@@ -62,10 +64,7 @@ def team(request, team):
 
 @login_required
 def project(request, project):
-    try:
-        project = models.Project.objects.get(pk=project)
-    except models.Project.DoesNotExist:
-        raise Http404()
+    project = get_object_or_404(models.Project, pk=project)
 
     if not project.team in request.user.team_set.all():
         raise Http404()
@@ -73,6 +72,12 @@ def project(request, project):
     if not project in request.user.project_set.all():
         raise Http404()
 
+    project_start, project_end = project.get_span()
+    delta = project_end - project_start
+    project_span = delta.days + 1
+
     return render(request, 'project.html', {
         'project': project,
+        'project_span': [i for i in range(1, project_span + 1)],
+        'day_span': [i for i in range(1, DAY_SPAN)],
     })

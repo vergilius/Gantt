@@ -4,7 +4,7 @@ from django.http import Http404
 
 from . import models
 
-DAY_SPAN = 4
+DAY_SPAN = 8
 
 
 def login_required(func):
@@ -76,8 +76,37 @@ def project(request, project):
     delta = project_end - project_start
     project_span = delta.days + 1
 
+    graph = []
+    for task in project.top_down_tasks():
+        graph.append({
+            'offset': task.get_offset(project_start),
+            'duration': task.get_days_span(),
+            'has_subtasks': task.has_subtasks(),
+        })
+
+    top_tasks = []
+    sub_tasks = {}
+    for task in project.top_down_tasks():
+        top_id = task.get_top_parent_id()
+
+        if top_id is None:
+            top_tasks.append(task)
+        else:
+            if top_id not in sub_tasks:
+                sub_tasks[top_id] = []
+            sub_tasks[top_id].append(task)
+
+    top_sub_tasks = []
+    for task in top_tasks:
+        top_sub_tasks.append({
+            'task': task,
+            'subtasks': sub_tasks.get(task.id),
+        })
+
     return render(request, 'project.html', {
         'project': project,
-        'project_span': [i for i in range(1, project_span + 1)],
-        'day_span': [i for i in range(1, DAY_SPAN)],
+        'project_span': project_span,
+        'day_span': DAY_SPAN,
+        'graph': graph,
+        'top_sub_tasks': top_sub_tasks,
     })

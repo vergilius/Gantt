@@ -139,3 +139,17 @@ class Task(models.Model):
             raise RuntimeError(
                 'Start date must be earlier or the same as due date.')
         super(Task, self).save(*args, **kwargs)
+
+    def get_top_parent_id(self):
+        if not self.parent_task:
+            return None
+        else:
+            return self.parent_task.get_top_parent_id() or self.parent_task.id
+
+    def get_offset(self, from_date):
+        delta = self.start_date - from_date
+        return delta.days
+
+    def get_days_span(self):
+        delta = self.due_date - self.start_date
+        return delta.days + 1

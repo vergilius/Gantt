@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load range %}
 
 {% block title %}{{ project.name }}{% endblock %}
 
@@ -9,14 +10,56 @@
     <div class="col-md-2">
         Tasks
         <ul>
-            {% for task in project.top_down_tasks %}
-                <li>{{ task.name }}</li>
+            {% for row in top_sub_tasks %}
+                <li>{{ row.task.name }}
+                    {% if row.subtasks %}
+                        <ul>
+                            {% for task in row.subtasks %}
+                                <li>{{ task.name }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </li>
             {% endfor %}
         </ul>
     </div>
     <div class="col-md-10">
         <div class="mono">
-            {% for day in project_span %}|{% for it in day_span %}&nbsp;{% endfor %}{% endfor %}|
+            {% nowhite %}
+                {% for i in project_span|get_range %}
+                    |
+                    {% for x in day_span|get_range %}
+                        &nbsp;
+                    {% endfor %}
+                {% endfor %}
+                |<br />
+
+                {% for row in graph %}
+                    {% for i in row.offset|get_range %}
+                        {% for x in day_span|inc|get_range %}&nbsp;{% endfor %}
+                    {% endfor %}
+
+                    {% if row.has_subtasks %}
+                        {% for i in row.duration|get_range %}
+                            {% if forloop.first %}
+                                /
+                            {% else %}
+                                -
+                            {% endif %}
+
+                            {% for x in day_span|get_range %}-{% endfor %}
+                        {% endfor %}
+                        \
+                    {% else %}
+                        {% for i in row.duration|get_range %}
+                            #
+                            {% for x in day_span|get_range %}#{% endfor %}
+                        {% endfor %}
+                        #
+                    {% endif %}
+                    <br />
+                {% endfor %}
+            {% endnowhite %}
         </div>
     </div>
 </div>

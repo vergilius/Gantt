@@ -1,3 +1,6 @@
+from copy import copy
+from datetime import timedelta
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import logout, forms, authenticate, login
 from django.http import Http404
@@ -62,6 +65,14 @@ def team(request, team):
     })
 
 
+def _day_generator(start):
+
+    start_date = copy(start)
+
+    while True:
+        yield start_date.day
+        start_date = start_date + timedelta(days=1)
+
 @login_required
 def project(request, project):
     project = get_object_or_404(models.Project, pk=project)
@@ -74,7 +85,10 @@ def project(request, project):
 
     project_start, project_end = project.get_span()
     delta = project_end - project_start
-    project_span = delta.days + 1
+    gen = _day_generator(project_start)
+    project_span = []
+    for i in range(delta.days + 1):
+        project_span.append(gen.next())
 
     graph = []
     for task in project.top_down_tasks():

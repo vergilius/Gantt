@@ -26,11 +26,8 @@
     <div class="col-md-10">
         <div class="mono">
             {% nowhite %}
-                {% for i in project_span|get_range %}
-                    |
-                    {% for x in day_span|get_range %}
-                        &nbsp;
-                    {% endfor %}
+                {% for i in project_span %}
+                    {% day day_span i %}
                 {% endfor %}
                 |<br />
 

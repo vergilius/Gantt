@@ -39,13 +39,16 @@
                 {% for i in project_span %}
                     {% day day_span i %}
                 {% endfor %}
-                |<br />
+                |
+            {% endnowhite %}
+                <br />
 
-                {% for row in graph %}
+            {% for row in graph %}
+                {% nowhite %}
                     {% for i in row.offset|get_range %}
                         {% for x in day_span|inc|get_range %}&nbsp;{% endfor %}
                     {% endfor %}
-
+                {% endnowhite %}{% progress row.realization %}{% nowhite %}
                     {% if row.has_subtasks %}
                         {% for i in row.duration|get_range %}
                             {% if forloop.first %}
@@ -64,9 +67,9 @@
                         {% endfor %}
                         #
                     {% endif %}
-                    <br />
-                {% endfor %}
-            {% endnowhite %}
+                {% endnowhite %}{% endprogress %}
+                <br />
+            {% endfor %}
         </div>
     </div>
 </div>

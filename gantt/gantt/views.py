@@ -96,6 +96,7 @@ def project(request, project):
             'offset': task.get_offset(project_start),
             'duration': task.get_days_span(),
             'has_subtasks': task.has_subtasks(),
+            'realization': task.get_general_realization(),
         })
 
     top_tasks = []

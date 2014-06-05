@@ -1,3 +1,5 @@
+from __future__ import division
+
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -153,3 +155,17 @@ class Task(models.Model):
     def get_days_span(self):
         delta = self.due_date - self.start_date
         return delta.days + 1
+
+    def get_realization(self):
+        if self.task_set.count() > 0:
+            result = []
+            for task in self.task_set.all():
+                result = result + task.get_realization()
+            return result
+        else:
+            return [min(max(self.realization, 0), 100)]
+
+    def get_general_realization(self):
+        all_tasks = self.get_realization()
+        value = sum(all_tasks) / len(all_tasks)
+        return min(max(value, 0), 100)

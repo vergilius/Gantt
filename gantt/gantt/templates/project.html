@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load range %}
+{% load asciigantt %}
 
 {% block title %}{{ project.name }}{% endblock %}
 
@@ -11,17 +11,27 @@
         Tasks
         <ul>
             {% for row in top_sub_tasks %}
-                <li>{{ row.task.name }}
+                <li>
+                    <a href="{% url "edit_task" project=project.pk task=row.task.pk %}">
+                        {{ row.task.name }}
+                    </a>
                     {% if row.subtasks %}
                         <ul>
                             {% for task in row.subtasks %}
-                                <li>{{ task.name }}</li>
+                                <li>
+                                    <a href="{% url "edit_task" project=project.pk task=task.pk %}">
+                                        {{ task.name }}
+                                    </a>
+                                </li>
                             {% endfor %}
                         </ul>
                     {% endif %}
                 </li>
             {% endfor %}
         </ul>
+        <a href="{% url "new_task" project=project.pk %}" class="btn btn-success">
+            Add <span class="glyphicon glyphicon-plus"></span>
+        </a>
     </div>
     <div class="col-md-10">
         <div class="mono">

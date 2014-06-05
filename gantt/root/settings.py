@@ -38,6 +38,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'south',
     'django_extensions',
+    'crispy_forms',
     'gantt',
 )
 

@@ -2,10 +2,10 @@ from copy import copy
 from datetime import timedelta
 
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import logout, forms, authenticate, login
+from django.contrib.auth import logout, authenticate, login, forms as dj_forms
 from django.http import Http404
 
-from . import models
+from . import models, forms
 
 DAY_SPAN = 8
 
@@ -26,13 +26,13 @@ def login_view(request):
         return redirect('/')
 
     if request.method == 'POST':
-        form = forms.AuthenticationForm(data=request.POST)
+        form = dj_forms.AuthenticationForm(data=request.POST)
         if form.is_valid():
             user = authenticate(**form.cleaned_data)
             login(request, user)
             return redirect('/')
     else:
-        form = forms.AuthenticationForm()
+        form = dj_forms.AuthenticationForm()
 
     return render(request, 'login.html', {
         'form': form,
@@ -123,4 +123,52 @@ def project(request, project):
         'day_span': DAY_SPAN,
         'graph': graph,
         'top_sub_tasks': top_sub_tasks,
+    })
+
+@login_required
+def new_task(request, project):
+    project = get_object_or_404(models.Project, pk=project)
+
+    if not project.team in request.user.team_set.all():
+        raise Http404()
+
+    if not project in request.user.project_set.all():
+        raise Http404()
+
+    if request.method == 'POST':
+        task_form = forms.TaskForm(request.POST)
+        if task_form.is_valid():
+            task = task_form.save(commit=False)
+            task.project = project
+            task.save()
+            return redirect('project', project=task.project.pk)
+    else:
+        task_form = forms.TaskForm()
+
+    return render(request, 'new.html', {
+        'task_form': task_form,
+    })
+
+@login_required
+def edit_task(request, project, task):
+    project = get_object_or_404(models.Project, pk=project)
+    task = get_object_or_404(models.Task, pk=task)
+
+    if not project.team in request.user.team_set.all():
+        raise Http404()
+
+    if not project in request.user.project_set.all():
+        raise Http404()
+
+    if request.method == 'POST':
+        task_form = forms.TaskForm(request.POST, instance=task)
+        if task_form.is_valid():
+            task_form.save()
+            return redirect('project', project=task.project.pk)
+    else:
+        task_form = forms.TaskForm(instance=task)
+
+    return render(request, 'edit.html', {
+        'task_form': task_form,
+        'task': task,
     })
